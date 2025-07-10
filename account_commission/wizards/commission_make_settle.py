@@ -22,10 +22,18 @@ class CommissionMakeSettle(models.TransientModel):
 
     def _get_account_settle_domain(self, agent, date_to_agent):
         return [
-            ("invoice_date", "<", date_to_agent),
             ("agent_id", "=", agent.id),
             ("settled", "=", False),
             ("object_id.display_type", "=", "product"),
+            "|",
+            "&",
+            ("commission_id.invoice_state", "=", "paid"),
+            "&",
+            ("payment_date", "!=", False),
+            ("payment_date", "<", date_to_agent),
+            "&",
+            ("commission_id.invoice_state", "!=", "paid"),
+            ("invoice_date", "<", date_to_agent),
         ]
 
     def _get_agent_lines(self, agent, date_to_agent):
@@ -34,7 +42,7 @@ class CommissionMakeSettle(models.TransientModel):
             return super()._get_agent_lines(agent, date_to_agent)
         return self.env["account.invoice.line.agent"].search(
             self._get_account_settle_domain(agent, date_to_agent),
-            order="invoice_date",
+            order="payment_date, invoice_date",
         )
 
     def _prepare_settlement_line_vals(self, settlement, line):

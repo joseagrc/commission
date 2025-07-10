@@ -178,7 +178,10 @@ class SettlementLine(models.Model):
         for record in self:
             if not record.invoice_agent_line_id:
                 continue
-            record.date = record.invoice_agent_line_id.invoice_date
+            record.date = (
+                record.invoice_agent_line_id.payment_date
+                or record.invoice_agent_line_id.invoice_date
+            )
 
     @api.depends("invoice_agent_line_id")
     def _compute_commission_id(self):
