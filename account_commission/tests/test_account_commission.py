@@ -724,3 +724,21 @@ class TestAccountCommission(TestCommissionBase):
         settlements = self.settle_model.search([("state", "=", "settled")])
         self.assertEqual(1, len(settlements))
         self.assertEqual(1, len(settlements.line_ids))
+
+    def test_settlement_group_payment_month(self):
+        invoice1 = self._create_invoice(
+            self.agent_monthly, self.commission_net_paid, "2024-01-01"
+        )
+        invoice2 = self._create_invoice(
+            self.agent_monthly, self.commission_net_paid, "2024-01-20"
+        )
+        (invoice1 + invoice2).action_post()
+        self._register_payment(invoice1, "2024-01-15")
+        self._register_payment(invoice2, "2024-02-05")
+        self._settle_agent_invoice(self.agent_monthly, 1, date_payment_to="2024-02-28")
+        settlements = self.settle_model.search(
+            [("agent_id", "=", self.agent_monthly.id), ("state", "=", "settled")]
+        )
+        self.assertEqual(2, len(settlements))
+        months = sorted({sett.date_from.month for sett in settlements})
+        self.assertEqual(months, [1, 2])

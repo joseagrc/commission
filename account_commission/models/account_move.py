@@ -186,6 +186,11 @@ class AccountInvoiceLineAgent(models.Model):
         store=True,
         readonly=True,
     )
+    payment_date = fields.Date(
+        string="Payment date",
+        compute="_compute_payment_date",
+        store=True,
+    )
     settlement_line_ids = fields.One2many(
         comodel_name="commission.settlement.line",
         inverse_name="invoice_agent_line_id",
@@ -199,6 +204,26 @@ class AccountInvoiceLineAgent(models.Model):
     currency_id = fields.Many2one(
         related="object_id.currency_id",
     )
+
+    @api.depends(
+        "invoice_id.line_ids.matched_debit_ids",
+        "invoice_id.line_ids.matched_credit_ids",
+    )
+    def _compute_payment_date(self):
+        for line in self:
+            payment_date = False
+            if line.invoice_id:
+                (
+                    invoice_partials,
+                    _exchange,
+                ) = line.invoice_id._get_reconciled_invoices_partials()
+                dates = [
+                    counterpart_line.date
+                    for (_p, _amt, counterpart_line) in invoice_partials
+                ]
+                if dates:
+                    payment_date = max(dates)
+            line.payment_date = payment_date
 
     @api.depends(
         "object_id.price_subtotal",
@@ -261,18 +286,10 @@ class AccountInvoiceLineAgent(models.Model):
 
     def _skip_future_payments(self):
         date_payment_to = self.env.context.get("date_payment_to")
-        if date_payment_to:
-            payments_dates = []
-            (
-                invoice_partials,
-                exchange_diff_moves,
-            ) = self.invoice_id._get_reconciled_invoices_partials()
-            for (
-                _partial,
-                _amount,
-                counterpart_line,
-            ) in invoice_partials:
-                payments_dates.append(counterpart_line.date)
-            if any(date_payment_to < date for date in payments_dates):
-                return True
+        if (
+            date_payment_to
+            and self.payment_date
+            and date_payment_to < self.payment_date
+        ):
+            return True
         return False

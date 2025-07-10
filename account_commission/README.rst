@@ -1,7 +1,3 @@
-.. image:: https://odoo-community.org/readme-banner-image
-   :target: https://odoo-community.org/get-involved?utm_source=readme
-   :alt: Odoo Community Association
-
 ===================
 Account commissions
 ===================
@@ -17,7 +13,7 @@ Account commissions
 .. |badge1| image:: https://img.shields.io/badge/maturity-Beta-yellow.png
     :target: https://odoo-community.org/page/development-status
     :alt: Beta
-.. |badge2| image:: https://img.shields.io/badge/license-AGPL--3-blue.png
+.. |badge2| image:: https://img.shields.io/badge/licence-AGPL--3-blue.png
     :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
     :alt: License: AGPL-3
 .. |badge3| image:: https://img.shields.io/badge/github-OCA%2Fcommission-lightgray.png?logo=github
@@ -52,8 +48,9 @@ For selecting invoice status in commissions:
 
    * **Invoice Based**: Commissions are settled when the invoice is issued.
    * **Payment Based**: Commissions are settled when the invoice is paid or refunded.
-     Note that when refunding an invoice, the corresponding reversed commission will
-     be settled as well, resulting in a 0 net commission between both operations.
+      Note that when refunding an invoice, the corresponding reversed commission will
+      be settled as well, resulting in a 0 net commission between both operations.
+      Payment based commissions determine the settlement period from the payment date.
 
 Usage
 =====
